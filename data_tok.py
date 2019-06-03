@@ -3,9 +3,9 @@ import tokenization
 import numpy as np
 import json
 
-kDataFile = "../data/tacred/data/json/test.json"
+kDataFile = "../data/tacred/data/json/train.json"
 kVocabFile = "../bert/cased_L-12_H-768_A-12/vocab.txt"
-kSaveFile = "test_conversion.json"
+kSaveFile = "../data/tacred/data/converted/train_conversion2.json"
 
 
 def transform( datafile, vocabfile ):
@@ -42,13 +42,24 @@ def transform( datafile, vocabfile ):
             orig_to_tok_map.append( len(bert_tokens) )
             bert_tokens.extend( tokenizer.tokenize(token) )
             tok_len_map.append( len(bert_tokens)-orig_to_tok_map[-1] )
+
+        bs1 = orig_to_tok_map[s1]
+        be1 = orig_to_tok_map[e1]+1
+        bs2 = orig_to_tok_map[s2]
+        be2 = orig_to_tok_map[e2]+1
+
+        d['subj_start'] = bs1
+        d['subj_end'] = be1
+        d['obj_start'] = bs2
+        d['obj_end'] = be2
+
+        bert_tokens.append( "[SEP]" )
+        bert_tokens += bert_tokens[bs1:be1]
+        bert_tokens.append( "[SEP]" )
+        bert_tokens += bert_tokens[bs2:be2]
         bert_tokens.append( "[SEP]" )
 
         d['token'] = bert_tokens
-        d['subj_start'] = orig_to_tok_map[s1]
-        d['subj_end'] = orig_to_tok_map[e1]+1
-        d['obj_start'] = orig_to_tok_map[s2]
-        d['obj_end'] = orig_to_tok_map[e2]+1
 
         spos = d['stanford_pos']
         spos2 = ['[CLS]']
@@ -64,7 +75,7 @@ def transform( datafile, vocabfile ):
             sner2 += [sner[i]]*n
             shead2 += [shead[i]]*n
             sdep2 += [sdep[i]]*n
-        spos2.append( "[SEP]" )
+        spos2 += ["[SEP]"] * (3 + be1-bs1 + be2-bs2)
         sner2.append( "[SEP]" )
         shead2.append( "[SEP]" )
         sdep2.append( "[SEP]" )
