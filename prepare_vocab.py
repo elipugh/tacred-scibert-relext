@@ -10,15 +10,21 @@ from collections import Counter
 from utils import vocab, constant, helper
 
 def parse_args():
+    # for BERT I changed 'glove' and 'wv' in args to 'emb'
+    # for BERT, use:
+    #   --emb_dir dataset/bert
+    #   --emb_file cased_L-12_H-768_A-12 ??
+    #   --emb_dim 768 ??
+    # not sure on flags yet... not implemented yet.
     parser = argparse.ArgumentParser(description='Prepare vocab for relation extraction.')
     parser.add_argument('data_dir', help='TACRED directory.')
     parser.add_argument('vocab_dir', help='Output vocab directory.')
-    parser.add_argument('--glove_dir', default='dataset/glove', help='GloVe directory.')
-    parser.add_argument('--wv_file', default='glove.840B.300d.txt', help='GloVe vector file.')
-    parser.add_argument('--wv_dim', type=int, default=300, help='GloVe vector dimension.')
+    parser.add_argument('--emb_dir', default='dataset/glove', help='Embedding directory.')
+    parser.add_argument('--emb_file', default='glove.840B.300d.txt', help='Embedding file.')
+    parser.add_argument('--emb_dim', type=int, default=300, help='Embedding dimension.')
     parser.add_argument('--min_freq', type=int, default=0, help='If > 0, use min_freq as the cutoff.')
     parser.add_argument('--lower', action='store_true', help='If specified, lowercase all words.')
-    
+
     args = parser.parse_args()
     return args
 
@@ -29,13 +35,13 @@ def main():
     train_file = args.data_dir + '/train.json'
     dev_file = args.data_dir + '/dev.json'
     test_file = args.data_dir + '/test.json'
-    wv_file = args.glove_dir + '/' + args.wv_file
-    wv_dim = args.wv_dim
+    emb_file = args.emb_dir + '/' + args.emb_file
+    emb_dim = args.emb_dim
 
     # output files
     helper.ensure_dir(args.vocab_dir)
     vocab_file = args.vocab_dir + '/vocab.pkl'
-    emb_file = args.vocab_dir + '/embedding.npy'
+    output_file = args.vocab_dir + '/embedding.npy'
 
     # load files
     print("loading files...")
@@ -48,11 +54,11 @@ def main():
 
     # load glove
     print("loading glove...")
-    glove_vocab = vocab.load_glove_vocab(wv_file, wv_dim)
-    print("{} words loaded from glove.".format(len(glove_vocab)))
+    emb_vocab = vocab.load_glove_vocab(emb_file, emb_dim)
+    print("{} words loaded from emb.".format(len(emb_vocab)))
     
     print("building vocab...")
-    v = build_vocab(train_tokens, glove_vocab, args.min_freq)
+    v = build_vocab(train_tokens, emb_vocab, args.min_freq)
 
     print("calculating oov...")
     datasets = {'train': train_tokens, 'dev': dev_tokens, 'test': test_tokens}
@@ -61,13 +67,13 @@ def main():
         print("{} oov: {}/{} ({:.2f}%)".format(dname, oov, total, oov*100.0/total))
     
     print("building embeddings...")
-    embedding = vocab.build_embedding(wv_file, v, wv_dim)
+    embedding = vocab.build_embedding(emb_file, v, emb_dim)
     print("embedding size: {} x {}".format(*embedding.shape))
 
     print("dumping to files...")
     with open(vocab_file, 'wb') as outfile:
         pickle.dump(v, outfile)
-    np.save(emb_file, embedding)
+    np.save(output_file, embedding)
     print("all done.")
 
 def load_tokens(filename):
