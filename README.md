@@ -20,7 +20,7 @@ chmod +x download.sh; ./download.sh
 
 Then prepare vocabulary and initial word vectors with:
 ```
-python prepare_vocab.py dataset/tacred dataset/vocab --glove_dir dataset/glove
+python prepare_vocab.py dataset/tacred dataset/vocab --emb_dir dataset/glove
 ```
 
 This will write vocabulary and word vectors as a numpy matrix into the dir `dataset/vocab`.
