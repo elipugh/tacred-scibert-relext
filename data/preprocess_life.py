@@ -5,6 +5,7 @@ import json
 import uuid
 from tqdm import tqdm
 
+DATADIR = '../dataset/intelligent-life/'
 TAXONOMY_STR = 'taxonomy.txt'
 STRUCTURE_STR = 'structure.txt'
 PROCESS_STR = 'process.txt'
@@ -12,15 +13,15 @@ DOCS = ['selected_textbook_sentences', 'life_biology_sentences']
 TERM_STR = 'terms.txt'
 
 def load_data():
-    with open(TAXONOMY_STR, 'r') as csvfile:
+    with open(DATADIR + TAXONOMY_STR, 'r') as csvfile:
         rels = [[a.strip() for a in rel] for rel in list(csv.reader(csvfile, delimiter='|'))]
 
-    with open(STRUCTURE_STR, 'r') as csvfile:
+    with open(DATADIR + STRUCTURE_STR, 'r') as csvfile:
         # TODO dropped context
         struct_rels = [[a.strip() for a in rel][2:] for rel in list(csv.reader(csvfile, delimiter='|'))]
         rels.extend(struct_rels)
 
-    with open(PROCESS_STR, 'r') as csvfile:
+    with open(DATADIR + PROCESS_STR, 'r') as csvfile:
         # TODO dropped context
         process_rels = [[a.strip() for a in rel][2:] for rel in list(csv.reader(csvfile, delimiter='|'))]
         rels.extend(process_rels)
@@ -30,7 +31,7 @@ def load_data():
 
     docs = {}
     for file in DOCS:
-        with open(file +'.txt', 'r') as sentfile:
+        with open(DATADIR + file +'.txt', 'r') as sentfile:
             sents = [s.split()[1:] for s in sentfile.read().splitlines()]
         docs[file] = sents
 
@@ -94,7 +95,7 @@ def label_sentences(rels, docs, vocab):
     return examples
 
 def save_to_json(examples):
-    with open('examples.json', 'w') as f:
+    with open(DATADIR + 'examples.json', 'w') as f:
         json.dump(examples, f, indent=4, sort_keys=True)
 
 def main():
