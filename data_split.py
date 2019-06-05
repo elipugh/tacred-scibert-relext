@@ -15,11 +15,14 @@ def split( ):
         data = json.load( datafile )
 
     n = len(data)
-    shuffle(data)
 
     train_data = data[ : int(n*.6) ]
     dev_data = data[ int(n*.6) : int(n*.8) ]
     test_data = data[ int(n*.8) : ]
+
+    shuffle(train_data)
+    shuffle(test_data)
+    shuffle(dev_data)
 
     with open( kDataDir + "train"+kSuffix, 'w+' ) as outfile:
         json.dump( train_data, outfile, indent=2 )
