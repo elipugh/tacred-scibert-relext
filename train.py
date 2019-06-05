@@ -21,6 +21,8 @@ from utils.vocab import Vocab
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', type=str, default='dataset/tacred')
 parser.add_argument('--vocab_dir', type=str, default='dataset/vocab')
+parser.add_argument('--train_file', type=str, default='train_conversion2.json')
+parser.add_argument('--dev_file', type=str, default='dev_conversion2.json')
 parser.add_argument('--emb_dim', type=int, default=768, help='Word embedding dimension.')
 parser.add_argument('--ner_dim', type=int, default=0, help='NER embedding dimension.')
 parser.add_argument('--pos_dim', type=int, default=0, help='POS embedding dimension.')
@@ -82,8 +84,8 @@ if not opt['bert']:
 
 # load data
 print("Loading data from {} with batch size {}...".format(opt['data_dir'], opt['batch_size']))
-train_batch = DataLoader(opt['data_dir'] + '/train.json', opt['batch_size'], opt, vocab, evaluation=False)
-dev_batch = DataLoader(opt['data_dir'] + '/dev.json', opt['batch_size'], opt, vocab, evaluation=True)
+train_batch = DataLoader(opt['data_dir'] + "/"+opt['train_file'], opt['batch_size'], opt, vocab, evaluation=False)
+dev_batch = DataLoader(opt['data_dir'] + "/"+opt['dev_file'], opt['batch_size'], opt, vocab, evaluation=True)
 
 model_id = opt['id'] if len(opt['id']) > 1 else '0' + opt['id']
 model_save_dir = opt['save_dir'] + '/' + model_id

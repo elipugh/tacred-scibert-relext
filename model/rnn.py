@@ -106,8 +106,8 @@ class PositionAwareRNN(nn.Module):
                     padding_idx=constant.PAD_ID)
         
         input_size = opt['emb_dim'] + opt['pos_dim'] + opt['ner_dim']
-        self.rnn = nn.LSTM(input_size, opt['hidden_dim'], int(opt['num_layers']/2), batch_first=True,\
-                dropout=opt['dropout'], bidirectional=True)
+        self.rnn = nn.LSTM(input_size, opt['hidden_dim'], opt['num_layers'], batch_first=True,\
+                dropout=opt['dropout'])
         self.linear = nn.Linear(opt['hidden_dim'], opt['num_class'])
 
         if opt['attn']:

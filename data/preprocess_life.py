@@ -3,6 +3,7 @@ import itertools
 import re
 import json
 import uuid
+import random
 from tqdm import tqdm
 
 DATADIR = '../dataset/intelligent-life/'
@@ -12,7 +13,7 @@ PROCESS_STR = 'process.txt'
 DOCS = ['selected_textbook_sentences', 'life_biology_sentences']
 TERM_STR = 'terms.txt'
 
-SAMPLE_NO_RELATION = .1
+SAMPLE_NO_RELATION = .13
 
 def load_data():
     with open(DATADIR + TAXONOMY_STR, 'r') as csvfile:
@@ -35,7 +36,7 @@ def load_data():
     for file in DOCS:
         with open(DATADIR + file +'.txt', 'r') as sentfile:
             sents = [s.split()[1:] for s in sentfile.read().splitlines()]
-        docs[file] = label_sentences
+        docs[file] = sents
 
     vocab = set()
     for rel in rels:
@@ -55,19 +56,20 @@ def words_in_sent(sent, vocab):
             sent_combo.append((i, i+2))
     return sent_combo
 
-def find_relation(rels, sub, obj):
-    for r in rels:
-        if r[0] == sub and r[2] == obj:
-            return r
+def find_relation(rels_dict, sub, obj):
+    if (sub, obj) in rels_dict:
+        return rels_dict[(sub, obj)]
     return None
 
 def label_sentences(rels, docs, vocab):
+    rels_dict = {(r[0], r[2]) : r for r in rels}
+    num_no_relation = 0
     examples = []
     for docid, sents in docs.items():
-        for sent in tqdm(sents[:500]):
+        for sent in tqdm(sents):
             word_idxs = words_in_sent(sent, vocab) # returns tuple of "word" indices (can be up to 3)
             for sub_idx, obj_idx in itertools.permutations(word_idxs, 2):
-                rel = find_relation(rels,
+                rel = find_relation(rels_dict,
                     " ".join(sent[sub_idx[0]:sub_idx[1]+1]),
                     " ".join(sent[obj_idx[0]:obj_idx[1]+1]))
                 if rel:
@@ -84,6 +86,7 @@ def label_sentences(rels, docs, vocab):
                     examples.append(example)
                 else:
                     if random.random() < SAMPLE_NO_RELATION:
+                        num_no_relation += 1
                         example = {
                             'docid': docid,
                             'id': uuid.uuid4().hex,
@@ -95,16 +98,17 @@ def label_sentences(rels, docs, vocab):
                             'obj_end': obj_idx[1]
                         }
                         examples.append(example)
-    return examples
+    return examples, num_no_relation
 
 def save_to_json(examples):
-    with open(DATADIR + 'examples.json', 'w') as f:
+    with open(DATADIR + 'examples.json', 'w+') as f:
         json.dump(examples, f, indent=4, sort_keys=True)
 
 def main():
     rels, docs, vocab = load_data()
-    examples = label_sentences(rels, docs, vocab)
+    examples, num_no_relation = label_sentences(rels, docs, vocab)
     print('NUM EXAMPLES', len(examples))
+    print('NUM NO RELATIONS', num_no_relation)
     save_to_json(examples)
 
 if __name__ == '__main__':
