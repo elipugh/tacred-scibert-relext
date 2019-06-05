@@ -107,7 +107,10 @@ helper.print_config(opt)
 # model
 model = RelationModel(opt, emb_matrix=None if opt['bert'] else emb_matrix)
 
-id2label = dict([(v,k) for k,v in constant.LABEL_TO_ID.items()])
+if opt['life']:
+    id2label = dict([(v,k) for k,v in constant.LIFE_LABEL_TO_ID.items()])
+if not opt['life']:
+    id2label = dict([(v,k) for k,v in constant.LABEL_TO_ID.items()])
 dev_f1_history = []
 current_lr = opt['lr']
 
