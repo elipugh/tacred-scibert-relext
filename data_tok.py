@@ -3,10 +3,10 @@ import tokenization
 import numpy as np
 import json
 
-kDataFile = "../data/intelligent-life/examples.json"
-kVocabFile = "../bert/cased_L-12_H-768_A-12/vocab.txt"
-kSaveFile = "../data/intelligent-life/examples_bert.json"
-
+kDataFile = "dataset/tacred/train.json"
+kVocabFile = "scibert_scivocab_cased/vocab.txt"
+kSaveFile = "dataset/tacred/train_scibert.json"
+kBookFlag = True
 
 def transform( datafile, vocabfile ):
 
@@ -60,31 +60,33 @@ def transform( datafile, vocabfile ):
         bert_tokens.append( "[SEP]" )
 
         d['token'] = bert_tokens
+        
+        if not kBookFlag:
 
-        spos = d['stanford_pos']
-        spos2 = ['[CLS]']
-        sner = d['stanford_ner']
-        sner2 = ['[CLS]']
-        shead = d['stanford_head']
-        shead2 = ['[CLS]']
-        sdep = d['stanford_deprel']
-        sdep2 = ['[CLS]']
-        for i in range( len(tok_len_map) ):
-            n = tok_len_map[i]
-            spos2 += [spos[i]]*n
-            sner2 += [sner[i]]*n
-            shead2 += [shead[i]]*n
-            sdep2 += [sdep[i]]*n
-        spos2 += ["[SEP]"] * (3 + be1-bs1 + be2-bs2)
-        sner2.append( "[SEP]" )
-        shead2.append( "[SEP]" )
-        sdep2.append( "[SEP]" )
-        d['stanford_pos'] = spos2
-        d['stanford_ner'] = sner2
-        d['stanford_head'] = shead2
-        d['stanford_deprel'] = sdep2
+            spos = d['stanford_pos']
+            spos2 = ['[CLS]']
+            sner = d['stanford_ner']
+            sner2 = ['[CLS]']
+            shead = d['stanford_head']
+            shead2 = ['[CLS]']
+            sdep = d['stanford_deprel']
+            sdep2 = ['[CLS]']
+            for i in range( len(tok_len_map) ):
+                n = tok_len_map[i]
+                spos2 += [spos[i]]*n
+                sner2 += [sner[i]]*n
+                shead2 += [shead[i]]*n
+                sdep2 += [sdep[i]]*n
+            spos2 += ["[SEP]"] * (3 + be1-bs1 + be2-bs2)
+            sner2.append( "[SEP]" )
+            shead2.append( "[SEP]" )
+            sdep2.append( "[SEP]" )
+            d['stanford_pos'] = spos2
+            d['stanford_ner'] = sner2
+            d['stanford_head'] = shead2
+            d['stanford_deprel'] = sdep2
 
-    with open( kSaveFile, 'w' ) as outfile:
+    with open( kSaveFile, 'w+' ) as outfile:
         json.dump( data, outfile, indent=2 )
 
 
