@@ -58,6 +58,7 @@ parser.add_argument('--seed', type=int, default=1234)
 parser.add_argument('--cuda', type=bool, default=torch.cuda.is_available())
 parser.add_argument('--cpu', action='store_true', help='Ignore CUDA.')
 parser.add_argument('--bert', action='store_true', help='Use Bert.')
+parser.add_argument('--life', action='store_true', help='Whether to use life or tacred rel2id.')
 args = parser.parse_args()
 
 torch.manual_seed(args.seed)
@@ -84,7 +85,7 @@ if not opt['bert']:
 
 # load data
 print("Loading data from {} with batch size {}...".format(opt['data_dir'], opt['batch_size']))
-train_batch = DataLoader(opt['data_dir'] + "/"+opt['train_file'], opt['batch_size'], opt, vocab, evaluation=False)
+train_batch = DataLoader(opt['data_dir'] + "/"+opt['train_file'], opt['batch_size'], opt, vocab, evaluation=False, opt['life'])
 dev_batch = DataLoader(opt['data_dir'] + "/"+opt['dev_file'], opt['batch_size'], opt, vocab, evaluation=True)
 
 model_id = opt['id'] if len(opt['id']) > 1 else '0' + opt['id']
