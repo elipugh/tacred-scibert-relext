@@ -71,9 +71,9 @@ elif args.cuda:
 
 # make opt
 opt = vars(args)
-if opt['--life']:
+if opt['life']:
     opt['num_class'] = len(constant.LIFE_LABEL_TO_ID)
-if not opt['--life']:
+if not opt['life']:
     opt['num_class'] = len(constant.LABEL_TO_ID)
 
 # load vocab
