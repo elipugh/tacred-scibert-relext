@@ -90,9 +90,9 @@ class DataLoader(object):
             l = len(tokens)
             subj_positions = get_positions(d['subj_start'], d['subj_end'], l)
             obj_positions = get_positions(d['obj_start'], d['obj_end'], l)
-            if life:
+            if self.life:
                 relation = constant.LIFE_LABEL_TO_ID[d['relation']]
-            if not life:
+            if not self.ife:
                 relation = constant.LABEL_TO_ID[d['relation']]
             processed += [(tokens, None, None, None, subj_positions, obj_positions, relation)]
         return processed
