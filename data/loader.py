@@ -92,7 +92,7 @@ class DataLoader(object):
             obj_positions = get_positions(d['obj_start'], d['obj_end'], l)
             if self.life:
                 relation = constant.LIFE_LABEL_TO_ID[d['relation']]
-            if not self.ife:
+            if not self.life:
                 relation = constant.LABEL_TO_ID[d['relation']]
             processed += [(tokens, None, None, None, subj_positions, obj_positions, relation)]
         return processed
