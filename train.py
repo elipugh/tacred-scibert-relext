@@ -99,7 +99,7 @@ helper.ensure_dir(model_save_dir, verbose=True)
 # save config
 helper.save_config(opt, model_save_dir + '/config.json', verbose=True)
 vocab.save(model_save_dir + '/vocab.pkl')
-file_logger = helper.FileLogger(model_save_dir + '/' + opt['log'], header="# epoch\ttrain_loss\tdev_loss\tdev_f1")
+file_logger = helper.FileLogger(model_save_dir + '/' + opt['log'], header="# epoch\ttrain_loss\tdev_loss\tdev_f1\tPrecision\tRecall")
 
 # print model info
 helper.print_config(opt)
@@ -145,7 +145,7 @@ for epoch in range(1, opt['num_epoch']+1):
     dev_loss = dev_loss / dev_batch.num_examples * opt['batch_size']
     print("epoch {}: train_loss = {:.6f}, dev_loss = {:.6f}, dev_f1 = {:.4f}".format(epoch,\
             train_loss, dev_loss, dev_f1))
-    file_logger.log("{}\t{:.6f}\t{:.6f}\t{:.4f}".format(epoch, train_loss, dev_loss, dev_f1))
+    file_logger.log("{}\t{:.6f}\t{:.6f}\t{:.4f}\t{:.4f}\t{:.4f}".format(epoch, train_loss, dev_loss, dev_f1,dev_p,dev_r))
 
     # save
     model_file = model_save_dir + '/checkpoint_epoch_{}.pt'.format(epoch)
