@@ -15,12 +15,13 @@ class DataLoader(object):
     """
     Load data from json files, preprocess and prepare batches.
     """
-    def __init__(self, filename, batch_size, opt, vocab, evaluation=False):
+    def __init__(self, filename, batch_size, opt, vocab, evaluation=False, life):
         self.batch_size = batch_size
         self.opt = opt
         self.vocab = vocab
         self.eval = evaluation
         self.bc = BertClient()
+        self.life = life
 
         with open(filename) as infile:
             data = json.load(infile)
@@ -89,7 +90,10 @@ class DataLoader(object):
             l = len(tokens)
             subj_positions = get_positions(d['subj_start'], d['subj_end'], l)
             obj_positions = get_positions(d['obj_start'], d['obj_end'], l)
-            relation = constant.LABEL_TO_ID[d['relation']]
+            if life:
+                relation = constant.LIFE_LABEL_TO_ID[d['relation']]
+            if not life:
+                relation = constant.LABEL_TO_ID[d['relation']]
             processed += [(tokens, None, None, None, subj_positions, obj_positions, relation)]
         return processed
 
