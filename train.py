@@ -19,7 +19,7 @@ from utils import scorer, constant, helper
 from utils.vocab import Vocab
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--data_dir', type=str, default='dataset/tacred')
+parser.add_argument('--data_dir', type=str, default='dataset/tacred-or-life')
 parser.add_argument('--vocab_dir', type=str, default='dataset/vocab')
 parser.add_argument('--train_file', type=str, default='specify_flag_dummy.json')
 parser.add_argument('--dev_file', type=str, default='specify_flag_dummy.json')
