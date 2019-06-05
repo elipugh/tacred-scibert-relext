@@ -26,7 +26,7 @@ class RelationModel(object):
     def update(self, batch):
         """ Run a step of forward and backward model update. """
         if self.opt['cuda']:
-            inputs = [b.cuda() for b in batch[:7]]
+            inputs = [b.cuda() if type(b) is torch.Tensor else None for b in batch[:7]]
             labels = batch[7].cuda()
         else:
             inputs = [b for b in batch[:7]]
@@ -48,7 +48,7 @@ class RelationModel(object):
     def predict(self, batch, unsort=True):
         """ Run forward prediction. If unsort is True, recover the original order of the batch. """
         if self.opt['cuda']:
-            inputs = [b.cuda() for b in batch[:7]]
+            inputs = [b.cuda() if type(b) is torch.Tensor else None for b in batch[:7]]
             labels = batch[7].cuda()
         else:
             inputs = [b for b in batch[:7]]
@@ -106,8 +106,8 @@ class PositionAwareRNN(nn.Module):
                     padding_idx=constant.PAD_ID)
         
         input_size = opt['emb_dim'] + opt['pos_dim'] + opt['ner_dim']
-        self.rnn = nn.LSTM(input_size, opt['hidden_dim'], opt['num_layers'], batch_first=True,\
-                dropout=opt['dropout'])
+        self.rnn = nn.LSTM(input_size, opt['hidden_dim'], int(opt['num_layers']/2), batch_first=True,\
+                dropout=opt['dropout'], bidirectional=True)
         self.linear = nn.Linear(opt['hidden_dim'], opt['num_class'])
 
         if opt['attn']:
@@ -162,20 +162,23 @@ class PositionAwareRNN(nn.Module):
         batch_size = words.size()[0]
         
         # embedding lookup
-        word_inputs = self.emb(words)
-        inputs = [word_inputs]
-        if self.opt['pos_dim'] > 0:
-            inputs += [self.pos_emb(pos)]
-        if self.opt['ner_dim'] > 0:
-            inputs += [self.ner_emb(ner)]
-        inputs = self.drop(torch.cat(inputs, dim=2)) # add dropout to input
+        if self.opt['bert']:
+            inputs = words
+        else:
+            inputs = [self.emb(words)]
+            if self.opt['pos_dim'] > 0:
+                inputs += [self.pos_emb(pos)]
+            if self.opt['ner_dim'] > 0:
+                inputs += [self.ner_emb(ner)]
+            # TODO check dropout
+            inputs = self.drop(torch.cat(inputs, dim=2)) # add dropout to input
         input_size = inputs.size(2)
         
         # rnn
         h0, c0 = self.zero_state(batch_size)
-        inputs = nn.utils.rnn.pack_padded_sequence(inputs, seq_lens, batch_first=True)
+        # inputs = nn.utils.rnn.pack_padded_sequence(inputs, seq_lens, batch_first=True)
         outputs, (ht, ct) = self.rnn(inputs, (h0, c0))
-        outputs, output_lens = nn.utils.rnn.pad_packed_sequence(outputs, batch_first=True)
+        # outputs, output_lens = nn.utils.rnn.pad_packed_sequence(outputs, batch_first=True)
         hidden = self.drop(ht[-1,:,:]) # get the outmost layer h_n
         outputs = self.drop(outputs)
         

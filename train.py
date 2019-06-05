@@ -21,9 +21,9 @@ from utils.vocab import Vocab
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', type=str, default='dataset/tacred')
 parser.add_argument('--vocab_dir', type=str, default='dataset/vocab')
-parser.add_argument('--emb_dim', type=int, default=300, help='Word embedding dimension.')
-parser.add_argument('--ner_dim', type=int, default=30, help='NER embedding dimension.')
-parser.add_argument('--pos_dim', type=int, default=30, help='POS embedding dimension.')
+parser.add_argument('--emb_dim', type=int, default=768, help='Word embedding dimension.')
+parser.add_argument('--ner_dim', type=int, default=0, help='NER embedding dimension.')
+parser.add_argument('--pos_dim', type=int, default=0, help='POS embedding dimension.')
 parser.add_argument('--hidden_dim', type=int, default=200, help='RNN hidden state size.')
 parser.add_argument('--num_layers', type=int, default=2, help='Num of RNN layers.')
 parser.add_argument('--dropout', type=float, default=0.5, help='Input and RNN dropout rate.')
@@ -55,6 +55,7 @@ parser.add_argument('--info', type=str, default='', help='Optional info for the 
 parser.add_argument('--seed', type=int, default=1234)
 parser.add_argument('--cuda', type=bool, default=torch.cuda.is_available())
 parser.add_argument('--cpu', action='store_true', help='Ignore CUDA.')
+parser.add_argument('--bert', action='store_true', help='Use Bert.')
 args = parser.parse_args()
 
 torch.manual_seed(args.seed)
@@ -76,7 +77,8 @@ opt['vocab_size'] = vocab.size
 emb_file = opt['vocab_dir'] + '/embedding.npy'
 emb_matrix = np.load(emb_file)
 assert emb_matrix.shape[0] == vocab.size
-assert emb_matrix.shape[1] == opt['emb_dim']
+if not opt['bert']:
+  assert emb_matrix.shape[1] == opt['emb_dim']
 
 # load data
 print("Loading data from {} with batch size {}...".format(opt['data_dir'], opt['batch_size']))
@@ -97,7 +99,7 @@ file_logger = helper.FileLogger(model_save_dir + '/' + opt['log'], header="# epo
 helper.print_config(opt)
 
 # model
-model = RelationModel(opt, emb_matrix=emb_matrix)
+model = RelationModel(opt, emb_matrix=None if opt['bert'] else emb_matrix)
 
 id2label = dict([(v,k) for k,v in constant.LABEL_TO_ID.items()])
 dev_f1_history = []
@@ -106,6 +108,7 @@ current_lr = opt['lr']
 global_step = 0
 global_start_time = time.time()
 format_str = '{}: step {}/{} (epoch {}/{}), loss = {:.6f} ({:.3f} sec/batch), lr: {:.6f}'
+print (train_batch[500])
 max_steps = len(train_batch) * opt['num_epoch']
 
 # start training

@@ -9,6 +9,8 @@ import numpy as np
 
 from utils import constant, helper, vocab
 
+from bert_serving.client import BertClient
+
 class DataLoader(object):
     """
     Load data from json files, preprocess and prepare batches.
@@ -18,10 +20,14 @@ class DataLoader(object):
         self.opt = opt
         self.vocab = vocab
         self.eval = evaluation
+        self.bc = BertClient()
 
         with open(filename) as infile:
             data = json.load(infile)
-        data = self.preprocess(data, vocab, opt)
+        if opt['bert']:
+            data = self.preprocess_bert(data, vocab, opt)
+        else:
+            data = self.preprocess(data, vocab, opt)
         # shuffle for training
         if not evaluation:
             indices = list(range(len(data)))
@@ -59,6 +65,34 @@ class DataLoader(object):
             processed += [(tokens, pos, ner, deprel, subj_positions, obj_positions, relation)]
         return processed
 
+    def preprocess_bert(self, data, vocab, opt):
+        """ Preprocess the data and convert to ids. """
+        processed = []
+        for d in data:
+            tokens = d['token']
+            for i, token in enumerate(tokens):
+                if type(token) != str:
+                    tokens[i] = str(token)
+            # anonymize tokens [skip, doesn't prevent overfitting?]
+            # ss, se = d['subj_start'], d['subj_end']
+            # os, oe = d['obj_start'], d['obj_end']
+            # TODO check indexing
+            # tokens[ss:se] = ['SUBJ-'+d['subj_type']] * (se-ss)
+            # tokens[os:oe] = ['OBJ-'+d['obj_type']] * (oe-os)
+
+            # tokens = map_to_ids(tokens, vocab.word2id)
+
+            # pos = map_to_ids(d['stanford_pos'], constant.POS_TO_ID)
+            # ner = map_to_ids(d['stanford_ner'], constant.NER_TO_ID)
+            # deprel = map_to_ids(d['stanford_deprel'], constant.DEPREL_TO_ID)
+
+            l = len(tokens)
+            subj_positions = get_positions(d['subj_start'], d['subj_end'], l)
+            obj_positions = get_positions(d['obj_start'], d['obj_end'], l)
+            relation = constant.LABEL_TO_ID[d['relation']]
+            processed += [(tokens, None, None, None, subj_positions, obj_positions, relation)]
+        return processed
+
     def gold(self):
         """ Return gold labels as a list. """
         return self.labels
@@ -81,19 +115,28 @@ class DataLoader(object):
         # sort all fields by lens for easy RNN operations
         lens = [len(x) for x in batch[0]]
         batch, orig_idx = sort_all(batch, lens)
-        
+
         # word dropout
         if not self.eval:
             words = [word_dropout(sent, self.opt['word_dropout']) for sent in batch[0]]
         else:
             words = batch[0]
 
-        # convert to tensors
-        words = get_long_tensor(words, batch_size)
+        if self.opt['bert']:
+
+            w = self.bc.encode(padded(words), is_tokenized=True)
+            # for i, word in enumerate(words):
+            #     if word[:4] == "SUBJ":
+
+            words = torch.FloatTensor(w)
+            pos, ner, deprel = None, None, None
+        else:
+            # convert to tensors
+            words = get_long_tensor(words, batch_size)
+            pos = get_long_tensor(batch[1], batch_size)
+            ner = get_long_tensor(batch[2], batch_size)
+            deprel = get_long_tensor(batch[3], batch_size)
         masks = torch.eq(words, 0)
-        pos = get_long_tensor(batch[1], batch_size)
-        ner = get_long_tensor(batch[2], batch_size)
-        deprel = get_long_tensor(batch[3], batch_size)
         subj_positions = get_long_tensor(batch[4], batch_size)
         obj_positions = get_long_tensor(batch[5], batch_size)
 
@@ -122,6 +165,15 @@ def get_long_tensor(tokens_list, batch_size):
         tokens[i, :len(s)] = torch.LongTensor(s)
     return tokens
 
+def padded(tokens_list):
+    result = []
+    token_len = max(len(x) for x in tokens_list)
+    for sentence in tokens_list:
+        while len(sentence) < token_len:
+            sentence.append('<PAD>')
+        result.append(sentence)
+    return result
+
 def sort_all(batch, lens):
     """ Sort all fields by descending order of lens, and return the original indices. """
     unsorted_all = [lens] + [range(len(lens))] + list(batch)
@@ -130,6 +182,6 @@ def sort_all(batch, lens):
 
 def word_dropout(tokens, dropout):
     """ Randomly dropout tokens (IDs) and replace them with <UNK> tokens. """
-    return [constant.UNK_ID if x != constant.UNK_ID and np.random.random() < dropout \
+    return [str(constant.UNK_ID) if x != constant.UNK_ID and np.random.random() < dropout \
             else x for x in tokens]
 
