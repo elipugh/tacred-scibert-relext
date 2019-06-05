@@ -101,7 +101,8 @@ def label_sentences(rels, docs, vocab):
     return examples, num_no_relation
 
 def save_to_json(examples):
-    with open(DATADIR + 'examples.json', 'w+') as f:
+    #with open(DATADIR + 'examples.json', 'w+') as f:
+    with open('examples.json', 'w+') as f:
         json.dump(examples, f, indent=4, sort_keys=True)
 
 def main():
