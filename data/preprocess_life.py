@@ -12,6 +12,8 @@ PROCESS_STR = 'process.txt'
 DOCS = ['selected_textbook_sentences', 'life_biology_sentences']
 TERM_STR = 'terms.txt'
 
+SAMPLE_NO_RELATION = .1
+
 def load_data():
     with open(DATADIR + TAXONOMY_STR, 'r') as csvfile:
         rels = [[a.strip() for a in rel] for rel in list(csv.reader(csvfile, delimiter='|'))]
@@ -33,7 +35,7 @@ def load_data():
     for file in DOCS:
         with open(DATADIR + file +'.txt', 'r') as sentfile:
             sents = [s.split()[1:] for s in sentfile.read().splitlines()]
-        docs[file] = sents
+        docs[file] = label_sentences
 
     vocab = set()
     for rel in rels:
@@ -81,17 +83,18 @@ def label_sentences(rels, docs, vocab):
                     }
                     examples.append(example)
                 else:
-                    example = {
-                        'docid': docid,
-                        'id': uuid.uuid4().hex,
-                        'token': sent,
-                        'relation': 'no_relation',
-                        'subj_start': sub_idx[0],
-                        'subj_end': sub_idx[1],
-                        'obj_start': obj_idx[0],
-                        'obj_end': obj_idx[1]
-                    }
-                    examples.append(example)
+                    if random.random() < SAMPLE_NO_RELATION:
+                        example = {
+                            'docid': docid,
+                            'id': uuid.uuid4().hex,
+                            'token': sent,
+                            'relation': 'no_relation',
+                            'subj_start': sub_idx[0],
+                            'subj_end': sub_idx[1],
+                            'obj_start': obj_idx[0],
+                            'obj_end': obj_idx[1]
+                        }
+                        examples.append(example)
     return examples
 
 def save_to_json(examples):
