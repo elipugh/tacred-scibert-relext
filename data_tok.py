@@ -3,9 +3,9 @@ import tokenization
 import numpy as np
 import json
 
-kDataFile = "../data/tacred/data/json/train.json"
+kDataFile = "../data/intelligent-life/examples.json"
 kVocabFile = "../bert/cased_L-12_H-768_A-12/vocab.txt"
-kSaveFile = "../data/tacred/data/converted/train_conversion2.json"
+kSaveFile = "../data/intelligent-life/examples_bert.json"
 
 
 def transform( datafile, vocabfile ):
