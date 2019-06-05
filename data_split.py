@@ -6,12 +6,12 @@ from random import shuffle
 
 kDataDir = "dataset/life/"
 kDataFile = "examples.json"
-ksuffix = "scibert"
+kSuffix = ".json"
 
 
-def split( data_dir, data_file ):
+def split( ):
 
-    with open( datafile ) as datafile:
+    with open( kDataDir+kDataFile ) as datafile:
         data = json.load( datafile )
 
     n = len(data)
@@ -21,16 +21,16 @@ def split( data_dir, data_file ):
     dev_data = data[ int(n*.6) : int(n*.8) ]
     test_data = data[ int(n*.8) : ]
 
-    with open( kDataDir + "train_"+suffix, 'w+' ) as outfile:
+    with open( kDataDir + "train"+kSuffix, 'w+' ) as outfile:
         json.dump( train_data, outfile, indent=2 )
 
-    with open( kDataDir + "dev_"+suffix, 'w+' ) as outfile:
+    with open( kDataDir + "dev"+kSuffix, 'w+' ) as outfile:
         json.dump( dev_data, outfile, indent=2 )
 
-    with open( kDataDir + "test_"+suffix, 'w+' ) as outfile:
+    with open( kDataDir + "test"+kSuffix, 'w+' ) as outfile:
         json.dump( test_data, outfile, indent=2 )
 
 
 
 if __name__ == "__main__":
-    split( kDataDir, kDataFile, suffix )
+    split( )
