@@ -15,7 +15,7 @@ class DataLoader(object):
     """
     Load data from json files, preprocess and prepare batches.
     """
-    def __init__(self, filename, batch_size, opt, vocab, evaluation=False, life):
+    def __init__(self, filename, batch_size, opt, vocab, life, evaluation=False):
         self.batch_size = batch_size
         self.opt = opt
         self.vocab = vocab
