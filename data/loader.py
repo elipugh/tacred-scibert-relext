@@ -34,7 +34,10 @@ class DataLoader(object):
             indices = list(range(len(data)))
             random.shuffle(indices)
             data = [data[i] for i in indices]
-        id2label = dict([(v,k) for k,v in constant.LABEL_TO_ID.items()])
+        if self.life:
+            id2label = dict([(v,k) for k,v in constant.LIFE_LABEL_TO_ID.items()])
+        if not self.life:
+            id2label = dict([(v,k) for k,v in constant.LABEL_TO_ID.items()])
         self.labels = [id2label[d[-1]] for d in data] 
         self.num_examples = len(data)
 
@@ -62,7 +65,10 @@ class DataLoader(object):
             l = len(tokens)
             subj_positions = get_positions(d['subj_start'], d['subj_end'], l)
             obj_positions = get_positions(d['obj_start'], d['obj_end'], l)
-            relation = constant.LABEL_TO_ID[d['relation']]
+            if not self.life:
+                relation = constant.LABEL_TO_ID[d['relation']]
+            if self.life:
+                relation = constant.LIFE_LABEL_TO_ID[d['relation']]
             processed += [(tokens, pos, ner, deprel, subj_positions, obj_positions, relation)]
         return processed
 
