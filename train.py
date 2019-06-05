@@ -71,7 +71,10 @@ elif args.cuda:
 
 # make opt
 opt = vars(args)
-opt['num_class'] = len(constant.LABEL_TO_ID)
+if opt['--life']:
+    opt['num_class'] = len(constant.LIFE_LABEL_TO_ID)
+if not opt['--life']:
+    opt['num_class'] = len(constant.LABEL_TO_ID)
 
 # load vocab
 vocab_file = opt['vocab_dir'] + '/vocab.pkl'
