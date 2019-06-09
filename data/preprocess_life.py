@@ -1,11 +1,17 @@
 import csv
 import itertools
+from collections import defaultdict
 import re
 import json
 import uuid
 import random
 from tqdm import tqdm
 
+# output
+kDataDir = "../dataset/life/"
+kSuffix = "_bert.json"
+
+# input
 DATADIR = '../dataset/intelligent-life/'
 TAXONOMY_STR = 'taxonomy.txt'
 STRUCTURE_STR = 'structure.txt'
@@ -61,10 +67,10 @@ def find_relation(rels_dict, sub, obj):
         return rels_dict[(sub, obj)]
     return None
 
-def label_sentences(rels, docs, vocab):
-    rels_dict = {(r[0], r[2]) : r for r in rels}
+def label_sentences(rels_dict, docs, vocab):
     num_no_relation = 0
     examples = []
+    relations = defaultdict(list)
     for docid, sents in docs.items():
         for sent in tqdm(sents):
             word_idxs = words_in_sent(sent, vocab) # returns tuple of "word" indices (can be up to 3)
@@ -84,6 +90,7 @@ def label_sentences(rels, docs, vocab):
                         'obj_end': obj_idx[1]
                     }
                     examples.append(example)
+                    relations[rel].append(example)
                 else:
                     if random.random() < SAMPLE_NO_RELATION:
                         num_no_relation += 1
@@ -98,19 +105,79 @@ def label_sentences(rels, docs, vocab):
                             'obj_end': obj_idx[1]
                         }
                         examples.append(example)
-    return examples, num_no_relation
+    return examples, relations, num_no_relation
 
 def save_to_json(examples):
     #with open(DATADIR + 'examples.json', 'w+') as f:
     with open('examples.json', 'w+') as f:
         json.dump(examples, f, indent=4, sort_keys=True)
 
+def train_dev_test_split(relations_dict, examples, train_frac, dev_frac, test_frac):
+    num_has_relation = len([i for i in examples if i["relation"] != "no_relation"])
+    train, dev = [], []
+    relation_keys = set(relations_dict.keys())
+
+    # first we split those with a relation
+    # sample for train
+    while len(train) < train_frac * num_has_relation:
+        rel = random.choice(tuple(relation_keys))
+        train += relations_dict[rel]
+        relation_keys.remove(rel)
+
+    # sample for dev
+    while len(dev) < dev_frac * num_has_relation:
+        rel = random.choice(tuple(relation_keys))
+        dev += relations_dict[rel]
+        relation_keys.remove(rel)
+
+    # the rest are test
+    test = []
+    for k in relation_keys:
+        test += relations_dict[k]
+
+    no_relation = [i for i in examples if i["relation"] == "no_relation"]
+    while len(train) < train_frac * len(examples):
+        ex = random.randint(0, len(no_relation)-1)
+        train.append(no_relation[ex])
+        del no_relation[ex]
+
+    while len(dev) < dev_frac * len(examples):
+        ex = random.randint(0, len(no_relation)-1)
+        dev.append(no_relation[ex])
+        del no_relation[ex]
+
+    test += list(no_relation)
+    random.shuffle(train)
+    random.shuffle(dev)
+    random.shuffle(test)
+
+    with open( kDataDir + "train"+kSuffix, 'w+' ) as outfile:
+        print ("writing", len(train), "to", outfile)
+        json.dump( train, outfile, indent=2 )
+
+    with open( kDataDir + "dev"+kSuffix, 'w+' ) as outfile:
+        print ("writing", len(dev), "to", outfile)
+        json.dump( dev, outfile, indent=2 )
+
+    with open( kDataDir + "test"+kSuffix, 'w+' ) as outfile:
+        print ("writing", len(test), "to", outfile)
+        json.dump( test, outfile, indent=2 )
+
+    return train, dev, test
+
+
 def main():
     rels, docs, vocab = load_data()
-    examples, num_no_relation = label_sentences(rels, docs, vocab)
+    rels_dict = {(r[0], r[2]) : r for r in rels}
+    examples, relations_dict, num_no_relation = label_sentences(rels_dict, docs, vocab)
     print('NUM EXAMPLES', len(examples))
     print('NUM NO RELATIONS', num_no_relation)
     save_to_json(examples)
+    # do shuffle and split over relations.
+    train, dev, test = train_dev_test_split(relations_dict, examples, .6, .2, .2)
+    print ("train:", len(train), "examples.")
+    print ("dev:", len(dev), "examples.")
+    print ("test:", len(test), "examples.")
 
 if __name__ == '__main__':
     main()

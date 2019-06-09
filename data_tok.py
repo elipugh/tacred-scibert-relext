@@ -2,16 +2,17 @@ import os
 import tokenization
 import numpy as np
 import json
+from tqdm import tqdm
 
-kDataFile = "dataset/tacred/train.json"
-kVocabFile = "scibert_scivocab_cased/vocab.txt"
-kSaveFile = "dataset/tacred/train_scibert.json"
+kDataFile = "dataset/life/dev_bert.json"
+kVocabFile = "cased_L-12_H-768_A-12/vocab.txt"
+kSaveFile = "dataset/model_ready/life_bert/dev.json"
 kBookFlag = True
 
 def transform( datafile, vocabfile ):
 
-    with open( datafile ) as datafile:
-        data = json.load( datafile )
+    with open( datafile ) as file:
+        data = json.load( file )
 
     tokenizer = tokenization.FullTokenizer( vocab_file=vocabfile, do_lower_case=False )
 
@@ -24,7 +25,7 @@ def transform( datafile, vocabfile ):
                     0: '[UNK]',
                     1: '[PAD]' }
 
-    for d in data:
+    for d in tqdm(data):
         tokens = d['token']
         s1 = d['subj_start']
         e1 = d['subj_end']

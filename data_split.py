@@ -5,8 +5,8 @@ import json
 from random import shuffle
 
 kDataDir = "dataset/life/"
-kDataFile = "examples.json"
-kSuffix = ".json"
+kDataFile = "examples_scibert.json"
+kSuffix = "_scibert.json"
 
 
 def split( ):

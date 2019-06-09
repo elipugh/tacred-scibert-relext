@@ -25,6 +25,7 @@ parser.add_argument('--out', type=str, default='', help="Save model predictions 
 parser.add_argument('--seed', type=int, default=1234)
 parser.add_argument('--cuda', type=bool, default=torch.cuda.is_available())
 parser.add_argument('--cpu', action='store_true')
+parser.add_argument('--life', action='store_true')
 args = parser.parse_args()
 
 torch.manual_seed(args.seed)
@@ -49,13 +50,17 @@ assert opt['vocab_size'] == vocab.size, "Vocab size must match that in the saved
 # load data
 data_file = opt['data_dir'] + '/{}.json'.format(args.dataset)
 print("Loading data from {} with batch size {}...".format(data_file, opt['batch_size']))
-batch = DataLoader(data_file, opt['batch_size'], opt, vocab, evaluation=True)
+batch = DataLoader(data_file, opt['batch_size'], opt, vocab, evaluation=True, life=opt['life'])
 
 helper.print_config(opt)
-id2label = dict([(v,k) for k,v in constant.LABEL_TO_ID.items()])
+if opt['life']:
+  id2label = dict([(v,k) for k,v in constant.LIFE_LABEL_TO_ID.items()])
+else:
+  id2label = dict([(v,k) for k,v in constant.LABEL_TO_ID.items()])
 
 predictions = []
 all_probs = []
+print ("!!!",batch[0])
 for i, b in enumerate(batch):
     preds, probs, _ = model.predict(b)
     predictions += preds
