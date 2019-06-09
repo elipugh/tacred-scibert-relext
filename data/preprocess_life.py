@@ -20,6 +20,8 @@ DOCS = ['selected_textbook_sentences', 'life_biology_sentences']
 TERM_STR = 'terms.txt'
 
 SAMPLE_NO_RELATION = .13
+DELETE_REPEAT_ENTITY = True
+SENT_LEN_THRESH = 70
 
 def load_data():
     with open(DATADIR + TAXONOMY_STR, 'r') as csvfile:
@@ -73,11 +75,17 @@ def label_sentences(rels_dict, docs, vocab):
     relations = defaultdict(list)
     for docid, sents in docs.items():
         for sent in tqdm(sents):
+            if len(sent) > SENT_LEN_THRESH: continue
+
             word_idxs = words_in_sent(sent, vocab) # returns tuple of "word" indices (can be up to 3)
             for sub_idx, obj_idx in itertools.permutations(word_idxs, 2):
-                rel = find_relation(rels_dict,
-                    " ".join(sent[sub_idx[0]:sub_idx[1]+1]),
-                    " ".join(sent[obj_idx[0]:obj_idx[1]+1]))
+                sub = " ".join(sent[sub_idx[0]:sub_idx[1]+1])
+                obj = " ".join(sent[obj_idx[0]:obj_idx[1]+1])
+
+                # get rid of repeat entity problem
+                if DELETE_REPEAT_ENTITY and sub == obj: continue
+
+                rel = find_relation(rels_dict, sub, obj)
                 if rel:
                     example = {
                         'docid': docid,
@@ -108,8 +116,7 @@ def label_sentences(rels_dict, docs, vocab):
     return examples, relations, num_no_relation
 
 def save_to_json(examples):
-    #with open(DATADIR + 'examples.json', 'w+') as f:
-    with open('examples.json', 'w+') as f:
+    with open(DATADIR + 'examples.json', 'w+') as f:
         json.dump(examples, f, indent=4, sort_keys=True)
 
 def train_dev_test_split(relations_dict, examples, train_frac, dev_frac, test_frac):
