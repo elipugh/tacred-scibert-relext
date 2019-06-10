@@ -7,9 +7,13 @@ import uuid
 import random
 from tqdm import tqdm
 
+from data_tok import transform
+
+kVocabFile = "../cased_L-12_H-768_A-12/vocab.txt"
+
 # output
-kDataDir = "../dataset/life/"
-kSuffix = "_bert.json"
+kDataDir = "../dataset/model_ready/life_bert/"
+kSuffix = ".json"
 
 # input
 DATADIR = '../dataset/intelligent-life/'
@@ -21,6 +25,7 @@ TERM_STR = 'terms.txt'
 
 SAMPLE_NO_RELATION = .13
 DELETE_REPEAT_ENTITY = True
+DELETE_OVERLAPPING = True
 SENT_LEN_THRESH = 70
 
 def load_data():
@@ -84,6 +89,10 @@ def label_sentences(rels_dict, docs, vocab):
 
                 # get rid of repeat entity problem
                 if DELETE_REPEAT_ENTITY and sub == obj: continue
+
+                # get rid of overlapping sub/obj
+                # indices are inclusive
+                if DELETE_OVERLAPPING and max(sub_idx[0], obj_idx[0]) <= min(sub_idx[1], obj_idx[1]): continue
 
                 rel = find_relation(rels_dict, sub, obj)
                 if rel:
@@ -160,15 +169,15 @@ def train_dev_test_split(relations_dict, examples, train_frac, dev_frac, test_fr
 
     with open( kDataDir + "train"+kSuffix, 'w+' ) as outfile:
         print ("writing", len(train), "to", outfile)
-        json.dump( train, outfile, indent=2 )
+        json.dump( transform(train, kVocabFile), outfile, indent=2 )
 
     with open( kDataDir + "dev"+kSuffix, 'w+' ) as outfile:
         print ("writing", len(dev), "to", outfile)
-        json.dump( dev, outfile, indent=2 )
+        json.dump( transform(dev, kVocabFile), outfile, indent=2 )
 
     with open( kDataDir + "test"+kSuffix, 'w+' ) as outfile:
         print ("writing", len(test), "to", outfile)
-        json.dump( test, outfile, indent=2 )
+        json.dump( transform(test, kVocabFile), outfile, indent=2 )
 
     return train, dev, test
 

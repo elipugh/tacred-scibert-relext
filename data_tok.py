@@ -4,16 +4,12 @@ import numpy as np
 import json
 from tqdm import tqdm
 
-kDataFile = "dataset/life/dev_bert.json"
-kVocabFile = "cased_L-12_H-768_A-12/vocab.txt"
-kSaveFile = "dataset/model_ready/life_bert/dev.json"
+kDataFile = "../dataset/life/dev_bert.json"
+# kVocabFile = "../cased_L-12_H-768_A-12/vocab.txt"
+kSaveFile = "../dataset/model_ready/life_bert/dev.json"
 kBookFlag = True
 
-def transform( datafile, vocabfile ):
-
-    with open( datafile ) as file:
-        data = json.load( file )
-
+def transform( data, vocabfile ):
     tokenizer = tokenization.FullTokenizer( vocab_file=vocabfile, do_lower_case=False )
 
     mapping = { '-LRB-': '(',
@@ -87,8 +83,7 @@ def transform( datafile, vocabfile ):
             d['stanford_head'] = shead2
             d['stanford_deprel'] = sdep2
 
-    with open( kSaveFile, 'w+' ) as outfile:
-        json.dump( data, outfile, indent=2 )
+    return data
 
 
 
@@ -103,4 +98,8 @@ def load_tokens( filename ):
 
 
 if __name__ == "__main__":
-    transform( kDataFile, kVocabFile )
+    with open( datafile ) as file:
+        indata = json.load( file )
+    resultdata = transform( indata, kVocabFile )
+    with open( kSaveFile, 'w+' ) as outfile:
+        json.dump( data, outfile, indent=2 )
