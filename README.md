@@ -1,7 +1,10 @@
 Position-aware Attention RNN Model for Relation Extraction
 =========================
 
-This repo contains the *PyTorch* code for paper [Position-aware Attention and Supervised Data Improve Slot Filling](https://nlp.stanford.edu/pubs/zhang2017tacred.pdf).
+This repo contains the implementation of our [paper](https://github.com/crw2998/tacred-relation-copy/blob/master/data/final_paper.pdf).
+
+
+The original code was cloned from from [this repo](https://github.com/yuhaozhang/tacred-relation), which is a *PyTorch* implementation for paper [Position-aware Attention and Supervised Data Improve Slot Filling](https://nlp.stanford.edu/pubs/zhang2017tacred.pdf).
 
 **The TACRED dataset**: Details on the TAC Relation Extraction Dataset can be found on [this dataset website](https://nlp.stanford.edu/projects/tacred/).
 
@@ -18,28 +21,18 @@ First, download and unzip GloVe vectors from the Stanford website, with:
 chmod +x download.sh; ./download.sh
 ```
 
-Then prepare vocabulary and initial word vectors with:
+Then tokenize data to run with BERT or SciBERT with:
 ```
-python prepare_vocab.py dataset/tacred dataset/vocab --emb_dir dataset/glove
+python data/data_tok.py
 ```
 
-This will write vocabulary and word vectors as a numpy matrix into the dir `dataset/vocab`.
 
 ## Training
 
-Train a position-aware attention RNN model with:
-```
-python train.py --data_dir dataset/tacred --vocab_dir dataset/vocab --id 00 --info "Position-aware attention model"
-```
-
-Use `--topn N` to finetune the top N word vectors only. The script will do the preprocessing automatically (word dropout, entity masking, etc.).
-
-Train an LSTM model with:
-```
-python train.py --data_dir dataset/tacred --vocab_dir dataset/vocab --no-attn --id 01 --info "LSTM model"
-```
+Train using the commands in  `cmdcheat.txt`. You need two terminal windows open, or two separate `tmux` sessions. Run the corresponding `bert-as-service` command and then run the `python train.py` command, both with the appropriate flags listed in `cmdcheat.txt`.
 
 Model checkpoints and logs will be saved to `./saved_models/00`.
+
 
 ## Evaluation
 
@@ -48,7 +41,9 @@ Run evaluation on the test set with:
 python eval.py saved_models/00 --dataset test
 ```
 
-This will use the `best_model.pt` by default. Use `--model checkpoint_epoch_10.pt` to specify a model checkpoint file. Add `--out saved_models/out/test1.pkl` to write model probability output to files (for ensemble, etc.).
+This will use the `best_model.pt` by default. Use `--model checkpoint_epoch_10.pt` to specify a model checkpoint file. Add `--out saved_models/out/test1.pkl` to write model probability output to files (for ensemble, etc.).  
+
+You will need `bert-as-service` running for the test phase as well.
 
 ## Ensemble
 
