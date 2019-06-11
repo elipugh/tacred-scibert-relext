@@ -1,7 +1,7 @@
 Position-aware Attention RNN Model for Relation Extraction
 =========================
 
-This repo contains the implementation of our [paper](https://github.com/crw2998/tacred-relation-copy/blob/master/data/final_paper.pdf).
+This repo contains the implementation of our [paper](https://github.com/crw2998/tacred-relation-copy/blob/master/papers/final_paper.pdf).
 
 
 The original code was cloned from from [this repo](https://github.com/yuhaozhang/tacred-relation), which is a *PyTorch* implementation for paper [Position-aware Attention and Supervised Data Improve Slot Filling](https://nlp.stanford.edu/pubs/zhang2017tacred.pdf).
