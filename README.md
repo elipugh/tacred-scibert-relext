@@ -1,4 +1,4 @@
-Position-aware Attention RNN Model for Relation Extraction
+Relation Extraction with an LSTM Model using BERT or SciBERT
 =========================
 
 This repo contains the implementation of our [paper](https://github.com/crw2998/tacred-relation-copy/blob/master/papers/final_paper.pdf).
