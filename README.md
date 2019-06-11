@@ -11,7 +11,8 @@ The original code was cloned from from [this repo](https://github.com/yuhaozhang
 ## Requirements
 
 - Python 3 (tested on 3.6.2)
-- PyTorch (tested on 1.0.0)
+- [PyTorch](https://github.com/pytorch/pytorch) (tested on 1.0.0)
+- [tqdm](https://github.com/tqdm/tqdm), [bert_as_service](https://github.com/hanxiao/bert-as-service), maybe a couple others
 - unzip, wget (for downloading only)
 
 ## Preparation
