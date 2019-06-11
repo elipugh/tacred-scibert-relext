@@ -17,6 +17,8 @@ echo "==> Unzipping SciBERT..."
 tar -xvzf scibert_scivocab_cased.tar.gz
 rm scibert_scivocab_cased.tar.gz
 
+cd ..
+
 echo "==> Done."
 
 
